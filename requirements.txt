@@ -1,0 +1,14 @@
+pandas
+PyQt5
+PyQt5-sip
+PyQtWebEngine
+plotly
+wordcloud
+setuptools
+appdirs
+pynput
+IPython
+pyarrow
+astor
+typing-extensions
+qtstylish>=0.1.2
