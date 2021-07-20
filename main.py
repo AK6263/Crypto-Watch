@@ -62,7 +62,7 @@ df = pd.DataFrame({
     'TIMESTAMP' : [0,0,0,0,0],
     'CONV RATE' : [0,0,0,0,0],
     'TOTAL' : [0,0,0,0,0],
-    'INITIAL' : [3069+500,2569-300-200,500-439,500,300],
+    'INITIAL' : [0,0,0,0,0],
     'DAILY PROFIT' : [0,0,0,0,0],
     'TOTAL PROFIT' : [0,0,0,0,0],
 })
