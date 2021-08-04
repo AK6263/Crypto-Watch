@@ -18,7 +18,7 @@ secret = coindcx['secretkey']
 
 common_url = "https://api.coindcx.com/exchange"
 
-def getbalance(coins):
+def getbalance():
     secret_bytes = bytes(secret, encoding='utf-8')
     timeStamp = int(round(time.time() * 1000))
     body = {
@@ -35,23 +35,30 @@ def getbalance(coins):
     }
     response = requests.post(url, data = json_body, headers = headers)
     data = response.json()
+    #for i in data:
+    #    if i['currency'] in coins:
+    #        ret[i['currency']] = i['balance']
+    #inrval = [i['balance'] for i in data if i['currency'] == 'INR']
+    #return ret,inrval[0]
+
     for i in data:
-        if i['currency'] in coins:
-            ret[i['currency']] = i['balance']
-    inrval = [i['balance'] for i in data if i['currency'] == 'INR']
-    return ret,inrval[0]
+        if i['balance'] != '0.0':
+            print(i)
+    #print(data)
+
+getbalance()
 
 def currentPrice(base):
     url = common_url + "/ticker"
     response = requests.get(url)
     data = response.json()
-    
+
     res = {}
     for j in data:
         if j['market'] in base:
             res[j['market']] = [j['timestamp'],j['last_price']]
     return res
-    
+
 coins = ['BTC','ETH','COMP','LINK','ADA']
 base = ['BTCINR','ETHINR','COMPETH','LINKINR','ADAINR']
 df = pd.DataFrame({
@@ -95,13 +102,13 @@ print()
 df['TOTAL'] = df['TOTAL'].astype(float)
 # df.groupby(['BASE']).sum().plot(kind='pie',subplots=True, y='INITIAL')
 # df.groupby(['BASE']).sum().plot(kind='pie',subplots=True, y='TOTAL')
-plot = plt.figure(1)
-plt.pie(df['TOTAL'],labels=df['BASE'])
-plt.title('TOTAL CURRENT')
-plot = plt.figure(2)
-plt.pie(df['INITIAL'],labels=df['BASE'])
-plt.title('TOTAL INITIAL')
-plot = plt.figure(3)
+#plot = plt.figure(1)
+#plt.pie(df['TOTAL'],labels=df['BASE'])
+#plt.title('TOTAL CURRENT')
+#plot = plt.figure(2)
+#plt.pie(df['INITIAL'],labels=df['BASE'])
+#plt.title('TOTAL INITIAL')
+#plot = plt.figure(3)
 
 total = df['TOTAL'].astype(float)
 initial = df['INITIAL'].astype(float)
@@ -112,19 +119,19 @@ for i, v in enumerate(initial):
     plt.text(i + 0.4, v + 0.01, str(v),rotation=60)
 for i, v in enumerate(diff):
     plt.text(i + 0.6, v + initial[i] - 0.01, str(round(initial[i]+diff[i],4)) +" ("+ str(round(v,4)) + ")",rotation=60)
-plt.ylim(0,initial.max() + 1000)
-plt.bar(x,initial,color='gray')
+#plt.ylim(0,initial.max() + 1000)
+#plt.bar(x,initial,color='gray')
 diffp = [0,0,0,0,0]
 for i in range(len(diff)):
     if diff[i] >= 0:
         diffp[i] = diff[i]
         diff[i] = 0
-plt.bar(x,diff,bottom=initial,color='r')
-plt.bar(x,diffp,bottom=initial,color='g')
+#plt.bar(x,diff,bottom=initial,color='r')
+#plt.bar(x,diffp,bottom=initial,color='g')
 # Create a new data base to save the profits
 if not os.path.exists("./log.csv"):
     log = pd.DataFrame({
-        "TIMESTAMP" : [], 
+        "TIMESTAMP" : [],
     })
     for i in df['BASE']:
         log[i] = []
@@ -147,15 +154,15 @@ ser["NET PROFIT"] = df['TOTAL PROFIT'].sum()
 log = log.append(ser,ignore_index = True)
 log['TIMESTAMP'] = pd.to_datetime(log['TIMESTAMP'])
 
-plot = plt.figure(4)
-plt.plot(log['TIMESTAMP'],log['NET PROFIT'],'b-')
-plt.plot(log['TIMESTAMP'],log['NET PROFIT'],'rx')
-plt.xlabel('TIMESTAMP')
-plt.ylabel('NET PROFIT')
-plt.xticks(rotation=30)
+#plot = plt.figure(4)
+#plt.plot(log['TIMESTAMP'],log['NET PROFIT'],'b-')
+#plt.plot(log['TIMESTAMP'],log['NET PROFIT'],'rx')
+#plt.xlabel('TIMESTAMP')#
+#plt.ylabel('NET PROFIT')
+#plt.xticks(rotation=30)
 # print(log)
 print(df)
 # show(df,log)
 df.to_csv('./current_data.csv',index=False)
 log.to_csv('./log.csv',index=False)
-plt.show()
+#plt.show()
