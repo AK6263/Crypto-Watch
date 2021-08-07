@@ -9,8 +9,9 @@ import time
 import requests
 import os
 from datetime import datetime
-from pandasgui import show
-
+# from pandasgui import show
+# Uncomment the following comment to display in non-scientific format
+# pd.set_option('display.float_format', '{:.2f}'.format)
 coindcx = json.load(open('./api.json'))
 
 key = coindcx['apikey']
@@ -18,7 +19,7 @@ secret = coindcx['secretkey']
 
 common_url = "https://api.coindcx.com/exchange"
 
-def getportfolio():
+def get_portfolio():
     secret_bytes = bytes(secret, encoding='utf-8')
     timeStamp = int(round(time.time() * 1000))
     body = {
@@ -35,38 +36,56 @@ def getportfolio():
     }
     response = requests.post(url, data = json_body, headers = headers)
     data = response.json()
-    #for i in data:
-    #    if i['currency'] in coins:
-    #        ret[i['currency']] = i['balance']
-    #inrval = [i['balance'] for i in data if i['currency'] == 'INR']
-    #return ret,inrval[0]
-    p = []
-    for i in data:
-        if i['balance'] != '0.0':
-            p.append(i)
 
-    portfolio = pd.DataFrame(p)
-    print(portfolio)
-    #return portfolio
+    p = [i for i in data if float(i['balance']) != 0.0]
+    portfolio = pd.DataFrame(p,index=[i['currency'] for i in p])
+
+    inr = portfolio[portfolio['currency'] == 'INR']['balance'].values[0]
+    usdt = portfolio[portfolio['currency'] == 'USDT']['balance'].values[0]
+    portfolio = portfolio.drop(['INR','USDT'])
+
+    return portfolio,inr,usdt
+
+def currentPrice(portfolio):
     coins = list(portfolio['currency'])
-    coins.remove('USDT')
-    a = 'USDT'
-    #print(coins)
-    base = coins[:]
-    for i in range(len(coins)):
-        base[i] = ''.join((base[i],a))
+    base = [i+'USDT' for i in coins]
 
-    #print(base)
     url = common_url + "/ticker"
     response = requests.get(url)
     data = response.json()
-    #print(data)
+    prices = {}
+    usdtinr = 0
+    for i in data:
+        if i['market'] in base:
+            prices[i['market']] = float(i['last_price'])
+        elif i['market'] == 'USDTINR':
+            usdtinr = float(i['last_price'])
 
-    res = {}
-    for j in data:
-        if j['market'] in base:
-            res[j['market']] = j['last_price']
-    #print(res)
+    return prices, coins, base, usdtinr
 
 
-getportfolio()
+portfolio,inr,usdt = get_portfolio()
+prices,coins,base,usdtinr = currentPrice(portfolio)
+
+# print(portfolio)
+# print(prices)
+
+
+df = pd.DataFrame({
+    'COINS' : coins,
+    'BASE' : base,
+    'MARKET PRICE (INR)' : [usdtinr*prices[i + 'USDT'] for i in coins],
+    'BALANCE' : portfolio['balance'].astype(float),
+    # 'TIMESTAMP' : [0,0,0,0,0],
+    # 'CONV RATE' : [0,0,0,0,0],
+    # 'TOTAL' : [0.0 for i in range(len(coins))] ,
+    # 'INITIAL' : [0,0,0,0,0],
+    # 'DAILY PROFIT' : [0,0,0,0,0],
+    # 'TOTAL PROFIT' : [0,0,0,0,0],
+})
+df['TOTAL'] = df['MARKET PRICE (INR)'] * df['BALANCE']
+print(df)
+print("USDTINR : {}, INR : {}, USDT : {}, TOTAL_HOLD : ".format(usdtinr,inr,usdt,df['TOTAL'].sum()))
+
+# uncomment the following code to reset to the scientific notation option
+# pd.reset_option('all')
