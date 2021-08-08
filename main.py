@@ -84,7 +84,7 @@ df = pd.DataFrame({
     # 'TOTAL PROFIT' : [0,0,0,0,0],
 })
 df['TOTAL'] = df['MARKET PRICE (INR)'] * df['BALANCE']
-print(df)
+print(df.to_string(index=False))
 print("USDTINR : {}, INR : {}, USDT : {}, TOTAL_HOLD : ".format(usdtinr,inr,usdt,df['TOTAL'].sum()))
 
 # uncomment the following code to reset to the scientific notation option
