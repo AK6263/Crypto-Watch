@@ -12,7 +12,7 @@ from datetime import datetime
 # from pandasgui import show
 # Uncomment the following comment to display in non-scientific format
 # pd.set_option('display.float_format', '{:.2f}'.format)
-coindcx = json.load(open('./api.json'))
+coindcx = json.load(open('../coindcx-api/api.json'))
 
 key = coindcx['apikey']
 secret = coindcx['secretkey']
@@ -36,7 +36,7 @@ def get_portfolio():
     }
     response = requests.post(url, data = json_body, headers = headers)
     data = response.json()
-
+    # print(data)
     p = [i for i in data if float(i['balance']) != 0.0]
     portfolio = pd.DataFrame(p,index=[i['currency'] for i in p])
 

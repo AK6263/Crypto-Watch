@@ -37,3 +37,5 @@ headers = {
 response = requests.post(url, data = json_body, headers = headers)
 data = response.json()
 print(data)
+with open('data.txt', 'w') as outfile:
+    json.dump(data, outfile)
